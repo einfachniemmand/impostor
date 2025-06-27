@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Imposter Words</title>
+    <link rel="stylesheet" href="global.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="content">
+        <div class="gamecard-outer">
+            <div class="gamecard" onclick="game.open()">
+                <div class="player-amount">
+                    <i class="fa-solid fa-user"></i>
+                    <span>3-30</span>
+                </div>
+                <div class="imgarea">
+                    <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=l&flip=true" class="sprite" data-flip="true" draggable="false">
+                    <img src="https://api.dicebear.com/9.x/lorelei/svg?seed=j" class="sprite" draggable="false" data-flip="false" onload="setTimeout(loadNewSprites,1500)">
+                </div>
+                <div class="textarea">
+                    <span class="unfocus">FIND THE</span>
+                    <span class="focus">IMPOSTOR</span>
+                    <span class="credits">by Benno</span>
+                </div>
+            </div>
+            <span class="tipp-card">Tap on the card to start</span>
+        </div>
+        <div class="game hidden" style="display: none;">
+            <iframe src="/game/"></iframe>
+        </div>
+    </div>
+    <script>
+        function randomAlphaString() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz';
+            const length = Math.floor(Math.random()*16);
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        function loadNewSprites () {
+            document.querySelectorAll(".sprite").forEach(e=>{
+                e.src = `https://api.dicebear.com/9.x/lorelei/svg?seed=${randomAlphaString()}&flip=${e.getAttribute("data-flip")}`
+            })
+        }
+        loadNewSprites()
+        const game = {
+            open:()=>{
+                game.target.style.display = "flex";
+                setTimeout(()=>{
+                    game.target.classList.remove("hidden")
+                },10)
+            },
+            close:()=>{
+                game.target.classList.add("hidden")
+                setTimeout(()=>{
+                    game.target.style.display = "none"
+                    document.querySelector("iframe").src += "";
+                },250)
+            },
+            target:document.querySelector(".game")
+        }
+        setInterval(()=>{
+            if(localStorage.getItem("exit")=="1"){
+                game.close()
+                localStorage.setItem("exit","0")
+            }
+        },250)
+    </script>
+</body>
+</html>
