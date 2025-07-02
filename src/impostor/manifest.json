@@ -1,0 +1,63 @@
+{
+  "name": "Impostor by Benno",
+  "short_name": "Impostor",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#fc3208",
+  "description": "A mock-up of the popular game made by the splash games team",
+  "dir": "ltr",
+  "lang": "en-US",
+  "scope": "/",
+  "categories": ["game", "fun", "tools"],
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "github",
+      "url": "https://github.com/einfachniemmand/impostor",
+      "id": "com.benn.impostor"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/img/android.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/screenshot.png",
+      "type": "image/png",
+      "label": "Choose a game"
+    },
+    {
+      "src": "/img/personalize.png",
+      "type": "image/png",
+      "label": "Personalize your experience"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Impostor",
+      "short_name": "Impostor",
+      "description": "Open Impostor with one click",
+      "url": "/index.html?open=chat",
+      "icons": [
+        {
+          "src": "/img/android.png",
+          "sizes": "1024x1024",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "display_override": ["standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Words Embed</title>
+    <link rel="stylesheet" href="game.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="beginner">Benno begins</div>
+    <div class="solve"><button class="default" onclick="app.solve()">Reveal Impostor</button></div>
+    <div class="card-outer">
+        <div class="relative-cardbox hidden">
+            <div class="card-reveal">
+                <i class="fa-solid fa-check"></i>
+                <span></span>
+            </div>
+            <div class="card-name">
+                <span></span>
+                <img draggable="false">
+            </div>
+        </div>
+    </div>
+    <div class="main-btn-outer">
+        <button class="default main hidden" onclick="app.next()">Next Player</button>
+    </div>
+    <script>
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        const app={
+            player:localStorage.getItem("player_list")?localStorage.getItem("player_list").split(","):localStorage.setItem("exit","1"),
+            cat:localStorage.getItem("chosen_cat")?localStorage.getItem("chosen_cat"):localStorage.setItem("exit","1"),
+            impostor:{
+                count:localStorage.getItem("impostor_count")?parseInt(localStorage.getItem("impostor_count")):1,
+                index:[]
+            },
+            renderNextPlayer:()=>{
+                document.querySelector(".card-name span").textContent = app.player[app.currentPlayer];
+                document.querySelector(".card-name img ").src = "https://api.dicebear.com/9.x/"+(localStorage.getItem("alt_char")=='true'?'notionists':'lorelei')+"/svg?seed="+app.player[app.currentPlayer];
+                document.querySelector(".card-reveal span").textContent = app.impostor.index.includes(app.currentPlayer) ? "Impostor":app.word;
+                if(app.impostor.index.includes(app.currentPlayer)){
+                    document.querySelector(".card-reveal i").classList.add("imp")
+                    document.querySelector(".card-reveal i").classList.add("fa-xmark")
+                }else{
+                    document.querySelector(".card-reveal i").classList.remove("imp")
+                    document.querySelector(".card-reveal i").classList.remove("fa-xmark")
+                }
+                setTimeout(()=>{document.querySelector(".relative-cardbox").classList.remove("hidden")},200)
+                if(app.currentPlayer==app.player.length-1){
+                    document.querySelector("button.default.main").textContent = "Finish"
+                }
+            },
+            currentPlayer:0,
+            next:()=>{
+                document.querySelector("button.default.main").classList.add("hidden")
+                document.querySelector(".relative-cardbox").classList.add("hidden")
+                app.currentPlayer++;
+                if(document.querySelector("button.default.main").textContent=="Finish"){
+                    setTimeout(()=>{document.querySelector("button.default.main").style.display = "none"},200)
+                    document.querySelector(".beginner").textContent = shuffle(app.player)[0] + "'s first.";
+                    document.querySelector(".beginner").style.opacity = "1"
+                    setTimeout(()=>{
+                        document.querySelector(".beginner").style.opacity = "0"
+                        document.querySelector(".relative-cardbox").style.display = "none"
+                        localStorage.setItem("exit","1")
+                    },5000)
+                }else{
+                    setTimeout(app.renderNextPlayer,250)
+                }
+            }
+        }
+        window.onload = function () {
+            app.player = shuffle(app.player);
+            const indices = Array.from({length: app.player.length}, (_, i) => i);
+            for (let i = 0; i < app.impostor.count; i++) {
+                const rand = Math.floor(Math.random() * indices.length);
+                app.impostor.index.push(indices.splice(rand, 1)[0]);
+            }
+            const category = getCats().find(cat => cat.name === app.cat);
+            if (category && Array.isArray(category.words) && category.words.length > 0) {
+                const randomIndex = Math.floor(Math.random() * category.words.length);
+                app.word = category.words[randomIndex];
+            } else {
+                app.word = null;
+            }
+            app.renderNextPlayer()
+        }
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        const cardBox = document.querySelector('.relative-cardbox');
+        const cardName = document.querySelector('.card-name');
+        const cardReveal = document.querySelector('.card-reveal');
+        let revealed = false;
+
+        function setTranslate(y) {
+            cardName.style.transform = `translateY(${y}px)`;
+        }
+
+        function bobAnimation() {
+            cardName.style.transition = 'transform 0.18s cubic-bezier(0.2,0,0.1,1)';
+            setTranslate(40);
+            setTimeout(() => {
+                cardName.style.transition = 'transform 0.22s cubic-bezier(0.2,0,0.1,1)';
+                setTranslate(0);
+                setTimeout(() => {
+                    cardName.style.transition = '';
+                }, 220);
+            }, 180);
+        }
+
+        let dragDiff = 0;
+
+        function smoothSetTranslate(y, duration = 120) {
+            cardName.style.transition = `transform ${duration}ms cubic-bezier(0.4,0,0.2,1)`;
+            setTranslate(y);
+        }
+
+        cardName.addEventListener('touchstart', function(e) {
+            if (revealed) return;
+            isDragging = true;
+            startY = e.touches[0].clientY;
+            dragDiff = 0;
+            cardName.style.transition = '';
+        }, { passive: true });
+
+        cardName.addEventListener('touchmove', function(e) {
+            if (!isDragging || revealed) return;
+            currentY = e.touches[0].clientY;
+            let diff = currentY - startY;
+            if (diff < 0) diff = Math.max(diff, -100);
+            else diff = 0;
+            dragDiff = diff;
+            setTranslate(diff);
+        }, { passive: true });
+
+        cardName.addEventListener('touchend', function() {
+            if (!isDragging || revealed) return;
+            isDragging = false;
+            if (dragDiff < -30) {
+                bobAnimation();
+                document.querySelector("button.main").classList.remove("hidden");
+            } else {
+                smoothSetTranslate(0, 180);
+                setTimeout(() => {
+                    cardName.style.transition = '';
+                }, 180);
+            }
+        });
+
+        cardName.addEventListener('mousedown', function(e) {
+            if (revealed) return;
+            isDragging = true;
+            startY = e.clientY;
+            dragDiff = 0;
+            document.body.style.userSelect = 'none';
+            cardName.style.transition = '';
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging || revealed) return;
+            currentY = e.clientY;
+            let diff = currentY - startY;
+            if (diff < 0) diff = Math.max(diff, -100);
+            else diff = 0;
+            dragDiff = diff;
+            setTranslate(diff);
+        });
+
+        window.addEventListener('mouseup', function() {
+            if (!isDragging || revealed) return;
+            isDragging = false;
+            document.body.style.userSelect = '';
+            if (dragDiff < -30) {
+                bobAnimation();
+                document.querySelector("button.main").classList.remove("hidden");
+            } else {
+                smoothSetTranslate(0, 180);
+                setTimeout(() => {
+                    cardName.style.transition = '';
+                }, 180);
+            }
+        });
+    </script>
+    <script src="categories.js"></script>
+</body>
+</html>
